@@ -1,0 +1,129 @@
+{
+  "project": "电商售后智能客服 - Agent工具定义",
+  "version": "1.0",
+  "description": "5个Function Calling工具的JSON Schema，可直接粘进Dify的Agent节点",
+  "design_principles": [
+    "每个工具的description必须明确『什么场景调用』，降低误调用率",
+    "parameters的description要写清楚格式和示例，提高参数抽取准确率",
+    "required字段只放必填参数，非必填的(如reason)留给模型自由发挥",
+    "工具之间职责互斥，避免一个动作两个工具都能做"
+  ],
+  "tools": [
+    {
+      "name": "query_order_status",
+      "description": "查询用户订单的物流状态。当用户询问订单到哪了、什么时候到货、物流进度、包裹在哪、快递状态时调用此工具。不要用于查询退货政策或退款进度。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "订单编号，格式为字母A开头加6位数字，例如 A123456。如果用户只说了部分编号，请先向用户确认完整订单号再调用。"
+          }
+        },
+        "required": ["order_id"]
+      },
+      "expected_output": "返回该订单的物流状态、预计到达时间、商品名称",
+      "test_trigger_examples": [
+        "我的订单A100001到哪了",
+        "A789012什么时候能到货",
+        "帮我查一下包裹A345678的物流"
+      ]
+    },
+    {
+      "name": "query_return_policy",
+      "description": "查询电商平台的退货、换货、退款政策。当用户询问能不能退货、退货期限几天、什么情况不能退、退货流程、换货规则、保修政策时调用此工具。注意：此工具走知识库RAG检索，不查具体订单。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "用户关于退货政策的原始问题，用于知识库检索。例如：7天无理由退货的条件是什么"
+          }
+        },
+        "required": ["question"]
+      },
+      "expected_output": "从知识库检索到的退货政策相关条款",
+      "test_trigger_examples": [
+        "退货政策是什么",
+        "几天之内能退货",
+        "什么情况不能7天无理由退",
+        "换货流程是怎样的"
+      ]
+    },
+    {
+      "name": "submit_return_request",
+      "description": "提交退货或换货申请。当用户明确表示要退货、要换货、要申请售后时调用此工具。调用前必须确认订单号和退货原因。如果订单金额超过500元，需提示用户转人工确认。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "要退货的订单编号，格式A开头加6位数字"
+          },
+          "reason": {
+            "type": "string",
+            "description": "退货原因，从以下选项中选择：质量问题/不喜欢/尺寸不合/描述不符/商品损坏/其他"
+          },
+          "request_type": {
+            "type": "string",
+            "enum": ["退货", "换货"],
+            "description": "申请类型：退货 或 换货"
+          }
+        },
+        "required": ["order_id", "request_type"]
+      },
+      "expected_output": "返回退货申请单号和处理时效",
+      "test_trigger_examples": [
+        "我要退货 A123456",
+        "帮我把A789012退了，质量问题",
+        "A345678我想换货"
+      ]
+    },
+    {
+      "name": "check_refund_progress",
+      "description": "查询退款进度和退款到账情况。当用户询问退款到账了吗、退款多久到、退款进度、钱什么时候退时调用此工具。注意：这是查退款状态，不是查物流。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "订单编号，格式A开头加6位数字"
+          }
+        },
+        "required": ["order_id"]
+      },
+      "expected_output": "返回退款状态（处理中/已退款/退款失败）和预计到账时间",
+      "test_trigger_examples": [
+        "A123456的退款到账了吗",
+        "我的退款多久能到",
+        "查一下A789012退款进度"
+      ]
+    },
+    {
+      "name": "escalate_to_human",
+      "description": "将对话转接给人工客服。在以下情况必须调用此工具：1)用户情绪激烈（出现愤怒、投诉、辱骂等关键词如『投诉』『曝光』『315』『差评』『气死』）；2)同一问题AI已经失败回答2次仍未解决；3)退货金额超过500元需人工确认；4)用户明确要求转人工。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "转人工的原因，例如：用户情绪激烈/问题多次未解决/金额超限/用户主动要求"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["普通", "紧急"],
+            "description": "优先级。情绪激烈或投诉设为紧急，其他设为普通"
+          }
+        },
+        "required": ["reason"]
+      },
+      "expected_output": "提示用户已转接人工客服，预计等待时长",
+      "test_trigger_examples": [
+        "我要投诉你们！",
+        "转人工",
+        "这破东西我不要了！气死我了",
+        "你们再不解决我曝光你们"
+      ]
+    }
+  ]
+}

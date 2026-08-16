@@ -1,0 +1,38 @@
+# ============================================
+# 电商售后智能客服 - Python依赖
+# 安装命令：pip install -r requirements.txt
+# Python版本要求：3.9 - 3.11（已验证 3.11.2 可用）
+# ============================================
+
+# --- 大模型 & LangChain（用 0.2.x 稳定系列，版本兼容）---
+langchain>=0.2.0,<0.3            # LangChain主框架（RAG+Agent核心）
+langchain-community>=0.2.0,<0.3  # 社区集成（向量库、文档加载等）
+langchain-core>=0.2.0,<0.3       # 核心依赖
+langchain-openai>=0.1.20         # OpenAI兼容接口（DeepSeek用它）
+
+# --- 向量数据库 ---
+chromadb>=0.4.24                 # 本地向量数据库（轻量，免费，无需部署）
+
+# --- Web界面 ---
+gradio>=4.0                      # Web聊天界面（10行代码出网页）
+
+# --- 数据库 ---
+# sqlite3 是Python内置库，不用装！
+
+# --- 评测 & 数据处理 ---
+pandas>=2.0                      # 评测数据处理
+matplotlib>=3.7                  # 生成对比图表
+
+# --- 工具 ---
+python-dotenv>=1.0               # 读取.env里的API Key（别把Key写代码里）
+
+# --- 智谱（Embedding用）---
+zhipuai>=2.1                     # 智谱SDK，配合langchain做向量化
+
+# ============================================
+# 注意事项：
+# 1. 如果chromadb安装失败，试：pip install chromadb --no-build-isolation
+# 2. 版本冲突时：pip install 包名 --upgrade 可单独升级某包
+# 3. Windows装不了某些包时，装Visual C++ Build Tools
+# ============================================
+

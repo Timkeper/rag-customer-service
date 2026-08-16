@@ -1,0 +1,364 @@
+{
+  "project": "电商售后智能客服 - 50题评测集",
+  "version": "1.0",
+  "description": "用于评测RAG客服系统的标准测试集。每题含：问题、类别、期望工具、期望参数、标准答案要点、评测维度。",
+  "categories": {
+    "A_退货政策咨询": "测RAG知识检索（15题）",
+    "B_订单物流查询": "测query_order_status工具（10题）",
+    "C_退货退款办理": "测submit_return/check_refund工具（12题）",
+    "D_转人工场景": "测escalate_to_human工具（8题）",
+    "E_边界与抗干扰": "测意图识别+误调用率（5题）"
+  },
+  "questions": [
+    {
+      "id": "A01", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "你们家的退货政策是什么？",
+      "expected_params": {"question": "退货政策"},
+      "key_answer_points": ["7天无理由退货", "商品需保持原样", "部分商品不支持（特殊说明）"],
+      "eval_dimensions": ["准确性", "相关性", "完整性"]
+    },
+    {
+      "id": "A02", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "7天无理由退货需要满足什么条件？",
+      "expected_params": {"question": "7天无理由退货条件"},
+      "key_answer_points": ["商品完好", "不影响二次销售", "原包装配件齐全", "7天内申请"],
+      "eval_dimensions": ["准确性", "完整性"]
+    },
+    {
+      "id": "A03", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "哪些商品不支持7天无理由退货？",
+      "expected_params": {"question": "不支持7天无理由退货的商品"},
+      "key_answer_points": ["生鲜食品", "数字化商品（充值/虚拟）", "拆封后影响安全的商品", "定制商品"],
+      "eval_dimensions": ["准确性", "完整性"]
+    },
+    {
+      "id": "A04", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "换货的流程是怎样的？",
+      "expected_params": {"question": "换货流程"},
+      "key_answer_points": ["15天内可申请", "提交换货申请", "商品寄回检测", "重新发货"],
+      "eval_dimensions": ["准确性", "完整性"]
+    },
+    {
+      "id": "A05", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "退货的运费谁来承担？",
+      "expected_params": {"question": "退货运费承担"},
+      "key_answer_points": ["质量问题卖家承担", "无理由退货买家承担（有运费险除外）", "运费险可报销"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A06", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "退款一般多久能到账？",
+      "expected_params": {"question": "退款到账时间"},
+      "key_answer_points": ["收到退货商品后1-3个工作日", "原路退回", "特殊情况可能延迟"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A07", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "商品收到时有损坏怎么办？",
+      "expected_params": {"question": "商品损坏处理"},
+      "key_answer_points": ["保留包装和证据", "拍照举证", "联系客服申请退货/换货", "运费卖家承担"],
+      "eval_dimensions": ["准确性", "完整性"]
+    },
+    {
+      "id": "A08", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "保修期内维修要收费吗？",
+      "expected_params": {"question": "保修政策"},
+      "key_answer_points": ["保修期内非人为损坏免费", "人为损坏收费", "保修期一般1年"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A09", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "退货的时候商品包装丢了还能退吗？",
+      "expected_params": {"question": "包装丢失退货"},
+      "key_answer_points": ["包装缺失可能影响退款金额", "需联系客服确认", "可能扣除包装费"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A10", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "买的生鲜坏了能退吗？",
+      "expected_params": {"question": "生鲜退货"},
+      "key_answer_points": ["生鲜不支持7天无理由", "但质量问题可申请退款", "需拍照举证"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A11", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "我可以申请价保吗？",
+      "expected_params": {"question": "价格保护"},
+      "key_answer_points": ["部分商品支持价保", "价保期内降价可退差价", "价保一般7-30天"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A12", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "退货审核不通过怎么办？",
+      "expected_params": {"question": "退货审核失败"},
+      "key_answer_points": ["查看拒绝原因", "补充证据材料", "可申请人工介入"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A13", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "用优惠券买的退货怎么退？",
+      "expected_params": {"question": "优惠券退货"},
+      "key_answer_points": ["按实际支付金额退款", "优惠券视规则退还或不退"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A14", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "15天之后还能换货吗？",
+      "expected_params": {"question": "换货期限"},
+      "key_answer_points": ["换货期限15天", "超过15天走保修流程", "保修期内可维修"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "A15", "category": "退货政策咨询", "expected_tool": "query_return_policy",
+      "question": "退货商品寄回去用什么快递？",
+      "expected_params": {"question": "退货快递"},
+      "key_answer_points": ["质量问题卖家指定", "无理由可自选", "建议保留快递单号"],
+      "eval_dimensions": ["准确性"]
+    },
+    {
+      "id": "B01", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "我的订单A100001到哪了？",
+      "expected_params": {"order_id": "A100001"},
+      "key_answer_points": ["运输中", "成都转运中心", "明天下午18:00前到"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率", "准确性"]
+    },
+    {
+      "id": "B02", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "A100002什么时候能到货？",
+      "expected_params": {"order_id": "A100002"},
+      "key_answer_points": ["已签收", "2026-07-26送达"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "B03", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "帮我查一下包裹A100008的物流进度",
+      "expected_params": {"order_id": "A100008"},
+      "key_answer_points": ["运输中", "武汉转运中心", "后天2026-07-30送达"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "B04", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "A100010的快递状态怎么样了",
+      "expected_params": {"order_id": "A100010"},
+      "key_answer_points": ["运输中", "圆通速递", "明天上午12:00前"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "B05", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "我买的耳机A100001发货了吗",
+      "expected_params": {"order_id": "A100001"},
+      "key_answer_points": ["已发货", "运输中", "索尼降噪耳机"],
+      "eval_dimensions": ["参数准确率", "准确性"]
+    },
+    {
+      "id": "B06", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "订单A100006怎么还没收到",
+      "expected_params": {"order_id": "A100006"},
+      "key_answer_points": ["待发货", "仓库打包中", "预计7-29发货"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率", "准确性"]
+    },
+    {
+      "id": "B07", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "帮我看下A100004到哪了",
+      "expected_params": {"order_id": "A100004"},
+      "key_answer_points": ["已签收", "2026-07-20送达"],
+      "eval_dimensions": ["参数准确率"]
+    },
+    {
+      "id": "B08", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "A100009的物流单号是多少",
+      "expected_params": {"order_id": "A100009"},
+      "key_answer_points": ["SF6677889900", "顺丰速运"],
+      "eval_dimensions": ["参数准确率", "准确性"]
+    },
+    {
+      "id": "B09", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "查订单 A100005",
+      "expected_params": {"order_id": "A100005"},
+      "key_answer_points": ["已退款", "退款已完成2026-07-25"],
+      "eval_dimensions": ["参数准确率", "准确性"]
+    },
+    {
+      "id": "B10", "category": "订单物流查询", "expected_tool": "query_order_status",
+      "question": "我的手表订单A100008还有多久到",
+      "expected_params": {"order_id": "A100008"},
+      "key_answer_points": ["后天2026-07-30送达", "武汉转运中心"],
+      "eval_dimensions": ["参数准确率"]
+    },
+    {
+      "id": "C01", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "我要退货A100002",
+      "expected_params": {"order_id": "A100002", "request_type": "退货"},
+      "key_answer_points": ["已受理退货申请", "返回申请单号", "提示退货流程"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率", "任务完成率"]
+    },
+    {
+      "id": "C02", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "帮我把A100004退了，尺寸不合",
+      "expected_params": {"order_id": "A100004", "request_type": "退货", "reason": "尺寸不合"},
+      "key_answer_points": ["⚠️金额3990超500元", "应触发转人工确认", "不能直接提交"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "C03", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "A100010我想换货",
+      "expected_params": {"order_id": "A100010", "request_type": "换货"},
+      "key_answer_points": ["已受理换货申请", "返回申请单号"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "C04", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "A100009质量有问题，退货",
+      "expected_params": {"order_id": "A100009", "request_type": "退货", "reason": "质量问题"},
+      "key_answer_points": ["⚠️金额1499超500元", "应转人工确认"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "C05", "category": "退货退款办理", "expected_tool": "check_refund_progress",
+      "question": "A100003的退款到账了吗？",
+      "expected_params": {"order_id": "A100003"},
+      "key_answer_points": ["处理中", "159元", "预计7-30到账", "微信支付"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率", "准确性"]
+    },
+    {
+      "id": "C06", "category": "退货退款办理", "expected_tool": "check_refund_progress",
+      "question": "我的退款A100005多久能到",
+      "expected_params": {"order_id": "A100005"},
+      "key_answer_points": ["已退款", "699元", "7-25已完成", "支付宝"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "C07", "category": "退货退款办理", "expected_tool": "check_refund_progress",
+      "question": "查一下A100007退款进度",
+      "expected_params": {"order_id": "A100007"},
+      "key_answer_points": ["退款失败", "原账户异常", "应建议转人工"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率", "安全性"]
+    },
+    {
+      "id": "C08", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "A100001这个耳机我想退货，描述不符",
+      "expected_params": {"order_id": "A100001", "request_type": "退货", "reason": "描述不符"},
+      "key_answer_points": ["⚠️金额1899超500元", "应转人工确认"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "C09", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "退掉A100002，不喜欢",
+      "expected_params": {"order_id": "A100002", "request_type": "退货", "reason": "不喜欢"},
+      "key_answer_points": ["已受理", "金额29.9不超限", "可直接提交"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "C10", "category": "退货退款办理", "expected_tool": "check_refund_progress",
+      "question": "A100003退款处理得怎么样了",
+      "expected_params": {"order_id": "A100003"},
+      "key_answer_points": ["处理中", "7-30前到账"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "C11", "category": "退货退款办理", "expected_tool": "submit_return_request",
+      "question": "A100008我要退货",
+      "expected_params": {"order_id": "A100008", "request_type": "退货"},
+      "key_answer_points": ["⚠️金额1488超500元", "应转人工确认"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "C12", "category": "退货退款办理", "expected_tool": "check_refund_progress",
+      "question": "A100005的退款到没到账",
+      "expected_params": {"order_id": "A100005"},
+      "key_answer_points": ["已退款", "7-25完成"],
+      "eval_dimensions": ["工具选择准确率", "参数准确率"]
+    },
+    {
+      "id": "D01", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "我要投诉你们！",
+      "expected_params": {"reason": "用户情绪激烈", "priority": "紧急"},
+      "key_answer_points": ["触发转人工", "识别情绪", "紧急优先级"],
+      "eval_dimensions": ["工具选择准确率", "安全性", "相关性"]
+    },
+    {
+      "id": "D02", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "这破东西我不要了！气死我了！",
+      "expected_params": {"reason": "用户情绪激烈", "priority": "紧急"},
+      "key_answer_points": ["触发转人工", "情绪安抚"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "D03", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "你们再不解决我曝光你们！",
+      "expected_params": {"reason": "用户情绪激烈/投诉", "priority": "紧急"},
+      "key_answer_points": ["触发转人工", "紧急"],
+      "eval_dimensions": ["工具选择准确率"]
+    },
+    {
+      "id": "D04", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "转人工",
+      "expected_params": {"reason": "用户主动要求"},
+      "key_answer_points": ["直接转人工"],
+      "eval_dimensions": ["工具选择准确率"]
+    },
+    {
+      "id": "D05", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "我要找人工客服",
+      "expected_params": {"reason": "用户主动要求"},
+      "key_answer_points": ["直接转人工"],
+      "eval_dimensions": ["工具选择准确率"]
+    },
+    {
+      "id": "D06", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "这个问题你解决不了，给我找人",
+      "expected_params": {"reason": "用户主动要求"},
+      "key_answer_points": ["转人工"],
+      "eval_dimensions": ["工具选择准确率"]
+    },
+    {
+      "id": "D07", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "我要打315投诉！",
+      "expected_params": {"reason": "用户情绪激烈/投诉", "priority": "紧急"},
+      "key_answer_points": ["触发转人工", "紧急"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "D08", "category": "转人工场景", "expected_tool": "escalate_to_human",
+      "question": "差评！什么垃圾服务",
+      "expected_params": {"reason": "用户情绪激烈", "priority": "紧急"},
+      "key_answer_points": ["触发转人工", "情绪安抚"],
+      "eval_dimensions": ["工具选择准确率", "安全性"]
+    },
+    {
+      "id": "E01", "category": "边界与抗干扰", "expected_tool": "none",
+      "question": "你好，你是谁？",
+      "expected_params": {},
+      "key_answer_points": ["自我介绍", "不调用任何工具", "说明能帮什么"],
+      "eval_dimensions": ["误调用率", "相关性"]
+    },
+    {
+      "id": "E02", "category": "边界与抗干扰", "expected_tool": "none",
+      "question": "今天天气怎么样？",
+      "expected_params": {},
+      "key_answer_points": ["超出服务范围", "礼貌引导回售后话题", "不调工具"],
+      "eval_dimensions": ["误调用率", "相关性"]
+    },
+    {
+      "id": "E03", "category": "边界与抗干扰", "expected_tool": "query_order_status",
+      "question": "帮我查下订单",
+      "expected_params": {"order_id": "需追问"},
+      "key_answer_points": ["追问订单号", "不能瞎调工具", "说明订单号格式"],
+      "eval_dimensions": ["参数准确率", "任务完成率"]
+    },
+    {
+      "id": "E04", "category": "边界与抗干扰", "expected_tool": "none",
+      "question": "A1",
+      "expected_params": {},
+      "key_answer_points": ["订单号不完整", "追问完整订单号", "不调工具"],
+      "eval_dimensions": ["误调用率", "参数准确率"]
+    },
+    {
+      "id": "E05", "category": "边界与抗干扰", "expected_tool": "query_order_status",
+      "question": "我的索尼耳机订单A100001什么时候到，顺便问下退货政策",
+      "expected_params": {"order_id": "A100001", "second_tool": "query_return_policy"},
+      "key_answer_points": ["多意图识别", "先查物流再答政策", "两个工具都该调"],
+      "eval_dimensions": ["工具选择准确率", "任务完成率", "完整性"]
+    }
+  ]
+}
