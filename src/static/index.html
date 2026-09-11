@@ -5,50 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>智答 · 售后客服</title>
 <style>
+  :root {
+    --brand: #4f6ef7; --brand-deep: #3b5bdb; --brand-grad: linear-gradient(135deg, #5c7cfa, #3b5bdb);
+    --ink: #1a2033; --ink-2: #5a6478; --ink-3: #98a1b3;
+    --bg: #f4f6fb; --card: #ffffff; --line: #e7eaf3;
+    --ok: #2fb380; --warn: #e8a33d; --bad: #e0566b;
+    --radius: 18px; --shadow: 0 10px 40px rgba(59,91,219,.10), 0 2px 8px rgba(26,32,51,.05);
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
-  header { background: linear-gradient(135deg, #2563eb, #1e40af); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
-  header .logo { width: 36px; height: 36px; background: rgba(255,255,255,.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  header h1 { font-size: 17px; font-weight: 600; }
-  header .sub { font-size: 12px; opacity: .85; }
-  header .orders { margin-left: auto; font-size: 12px; background: rgba(255,255,255,.15); padding: 4px 10px; border-radius: 12px; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  /* 背景装饰 */
+  .bg-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .bg-deco::before, .bg-deco::after {
+    content: ""; position: absolute; border-radius: 50%; filter: blur(90px); opacity: .35;
+  }
+  .bg-deco::before { width: 420px; height: 420px; background: #c7d4ff; top: -140px; right: -120px; }
+  .bg-deco::after { width: 360px; height: 360px; background: #d8e2ff; bottom: -140px; left: -120px; }
 
-  /* 验证卡片 */
-  #verifyScreen { flex: 1; display: flex; align-items: center; justify-content: center; }
-  .card { background: #fff; border-radius: 16px; padding: 32px; width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
-  .card .icon { font-size: 44px; margin-bottom: 8px; }
-  .card h2 { font-size: 18px; color: #1e293b; margin-bottom: 6px; }
-  .card p { font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
-  .card input { width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; margin-bottom: 12px; outline: none; }
-  .card input:focus { border-color: #2563eb; }
-  .card button { width: 100%; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: 600; }
-  .card button:hover { background: #1d4ed8; }
-  .card .err { color: #dc2626; font-size: 13px; margin-top: 10px; min-height: 18px; }
-  .card .demo { margin-top: 16px; font-size: 12px; color: #94a3b8; background: #f8fafc; border-radius: 8px; padding: 8px; line-height: 1.7; }
+  header {
+    position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;
+    padding: 14px 22px; color: #fff; background: var(--brand-grad);
+    box-shadow: 0 4px 24px rgba(59,91,219,.28);
+  }
+  header .logo {
+    width: 42px; height: 42px; border-radius: 14px; background: rgba(255,255,255,.18);
+    backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; font-size: 22px;
+    border: 1px solid rgba(255,255,255,.25);
+  }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: .5px; }
+  header .sub { font-size: 12px; opacity: .85; margin-top: 1px; }
+  header .orders {
+    margin-left: auto; font-size: 12px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.22);
+    padding: 6px 14px; border-radius: 20px; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    backdrop-filter: blur(6px);
+  }
 
-  /* 聊天区 */
-  #chatScreen { flex: 1; display: none; flex-direction: column; }
-  #msgs { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
-  .msg { max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
-  .msg.user { align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 4px; }
-  .msg.bot { align-self: flex-start; background: #fff; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .msg.agent { align-self: flex-start; background: #fef9c3; color: #713f12; border: 1px solid #fde047; border-bottom-left-radius: 4px; }
-  .msg .toolhint { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #2563eb; background: #eff6ff; border-radius: 10px; padding: 3px 10px; margin-bottom: 6px; }
-  .receipt { margin-top: 8px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 10px 12px; font-size: 13px; color: #166534; }
-  .receipt .undo { margin-top: 6px; }
-  .receipt .undo button { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
-  .typing { align-self: flex-start; color: #94a3b8; font-size: 13px; padding: 4px 10px; }
+  /* ===== 验证屏 ===== */
+  #verifyScreen { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .card {
+    background: var(--card); border-radius: 24px; padding: 40px 36px; width: 400px; max-width: 100%;
+    box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,.8); text-align: center;
+    animation: rise .5s ease;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .card .icon {
+    width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 24px;
+    background: linear-gradient(135deg, #e8edff, #d5defc); display: flex; align-items: center; justify-content: center; font-size: 34px;
+  }
+  .card h2 { font-size: 19px; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: var(--ink-2); margin-bottom: 24px; line-height: 1.7; }
+  .field { position: relative; margin-bottom: 14px; }
+  .card input {
+    width: 100%; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 14px;
+    font-size: 15px; outline: none; transition: all .2s; background: #fafbfe;
+  }
+  .card input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 4px rgba(79,110,247,.12); }
+  .card button {
+    width: 100%; padding: 14px; background: var(--brand-grad); color: #fff; border: none; border-radius: 14px;
+    font-size: 15px; cursor: pointer; font-weight: 700; letter-spacing: 1px;
+    box-shadow: 0 8px 20px rgba(59,91,219,.35); transition: transform .15s, box-shadow .15s;
+  }
+  .card button:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(59,91,219,.42); }
+  .card .err { color: var(--bad); font-size: 13px; margin-top: 12px; min-height: 18px; }
+  .card .demo {
+    margin-top: 18px; font-size: 12px; color: var(--ink-3); background: #f6f8fc;
+    border: 1px dashed var(--line); border-radius: 12px; padding: 10px; line-height: 1.8;
+  }
+  .card .demo b { color: var(--brand-deep); }
+
+  /* ===== 聊天屏 ===== */
+  #chatScreen { position: relative; z-index: 1; flex: 1; display: none; flex-direction: column; min-height: 0; }
+  #msgs { flex: 1; overflow-y: auto; padding: 22px 20px 10px; display: flex; flex-direction: column; gap: 16px; }
+  #msgs::-webkit-scrollbar { width: 6px; } #msgs::-webkit-scrollbar-thumb { background: #d3d9e8; border-radius: 3px; }
+  .row { display: flex; gap: 10px; align-items: flex-end; max-width: 86%; }
+  .row.user { align-self: flex-end; flex-direction: row-reverse; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .row.bot .avatar, .row.agent .avatar { background: linear-gradient(135deg, #eef1ff, #dde5ff); border: 1px solid #e3e9fc; }
+  .row.user .avatar { background: linear-gradient(135deg, #5c7cfa, #3b5bdb); color: #fff; font-size: 13px; font-weight: 700; }
+  .bubble { position: relative; }
+  .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
+  .row.user .msg { background: var(--brand-grad); color: #fff; border-bottom-right-radius: 6px; box-shadow: 0 4px 14px rgba(59,91,219,.3); }
+  .row.bot .msg { background: var(--card); color: var(--ink); border-bottom-left-radius: 6px; border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(26,32,51,.04); }
+  .row.agent .msg { background: #fff8e6; color: #6b4d0f; border: 1px solid #f5df9a; border-bottom-left-radius: 6px; }
+  .toolhint {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--brand-deep);
+    background: #eef1ff; border-radius: 10px; padding: 4px 12px; margin-bottom: 8px; border: 1px solid #e0e6fb;
+  }
+  .receipt {
+    margin-top: 10px; background: linear-gradient(135deg, #ecfaf3, #e2f6ec); border: 1px solid #b8e8d0;
+    border-radius: 14px; padding: 12px 14px; font-size: 13px; color: #157347; line-height: 1.7;
+  }
+  .receipt.warn { background: linear-gradient(135deg, #fff8e9, #fdf1d8); border-color: #f0dca0; color: #92610e; }
+  .receipt .undo { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+  .receipt .undo button {
+    background: var(--ok); color: #fff; border: none; border-radius: 8px; padding: 6px 14px;
+    font-size: 12px; cursor: pointer; font-weight: 600; transition: opacity .15s;
+  }
+  .receipt .undo button:hover { opacity: .88; }
+  .typing .msg { color: var(--ink-3); font-size: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
   .typing .dots::after { content: ""; animation: dots 1.2s steps(4) infinite; }
   @keyframes dots { 0% { content: ""; } 25% { content: "·"; } 50% { content: "··"; } 75% { content: "···"; } }
 
-  #inputBar { display: flex; gap: 10px; padding: 12px 16px; background: #fff; border-top: 1px solid #e2e8f0; }
-  #inputBar input { flex: 1; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 22px; font-size: 14px; outline: none; }
-  #inputBar input:focus { border-color: #2563eb; }
-  #inputBar button { padding: 0 22px; background: #2563eb; color: #fff; border: none; border-radius: 22px; font-size: 14px; cursor: pointer; }
-  #inputBar button:disabled { background: #94a3b8; }
+  #inputBar {
+    display: flex; gap: 10px; padding: 14px 18px 18px; background: linear-gradient(to top, var(--bg) 60%, transparent);
+  }
+  #inputBar .box {
+    flex: 1; display: flex; align-items: center; background: #fff; border: 1.5px solid var(--line);
+    border-radius: 24px; padding: 4px 6px 4px 18px; box-shadow: 0 2px 10px rgba(26,32,51,.05); transition: border-color .2s;
+  }
+  #inputBar .box:focus-within { border-color: var(--brand); }
+  #chatInput { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; padding: 10px 0; }
+  #sendBtn {
+    padding: 0 22px; height: 42px; background: var(--brand-grad); color: #fff; border: none; border-radius: 20px;
+    font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(59,91,219,.3); transition: transform .15s;
+  }
+  #sendBtn:hover:not(:disabled) { transform: translateY(-1px); }
+  #sendBtn:disabled { background: #b9c2da; box-shadow: none; cursor: not-allowed; }
 </style>
 </head>
 <body>
+
+<div class="bg-deco"></div>
 
 <header>
   <div class="logo">🤖</div>
@@ -65,8 +149,8 @@
     <div class="icon">📦</div>
     <h2>验证您的订单</h2>
     <p>为了保护您的账户安全，请验证订单信息<br>验证后即可查询与办理名下订单</p>
-    <input id="phoneInput" placeholder="下单手机号后四位" maxlength="4" inputmode="numeric">
-    <input id="orderInput" placeholder="订单号（如 A100002）">
+    <div class="field"><input id="phoneInput" placeholder="下单手机号后四位" maxlength="4" inputmode="numeric"></div>
+    <div class="field"><input id="orderInput" placeholder="订单号（如 A100002）"></div>
     <button onclick="doVerify()">开始咨询</button>
     <div class="err" id="verifyErr"></div>
     <div class="demo">演示账号：尾号 <b>8002</b> + 订单 <b>A100002</b><br>或 尾号 <b>8001</b> + <b>A100001</b>（大额单，体验转人工）</div>
@@ -77,8 +161,10 @@
 <div id="chatScreen">
   <div id="msgs"></div>
   <div id="inputBar">
-    <input id="chatInput" placeholder="输入您的问题，如：我的快递到哪了" onkeydown="if(event.key==='Enter')sendMsg()">
-    <button id="sendBtn" onclick="sendMsg()">发送</button>
+    <div class="box">
+      <input id="chatInput" placeholder="输入您的问题，如：我的快递到哪了" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button id="sendBtn" onclick="sendMsg()">发送</button>
+    </div>
   </div>
 </div>
 
@@ -118,16 +204,26 @@ async function loadHistory() {
 }
 
 function addMsg(role, text, extra) {
+  const row = document.createElement('div');
+  row.className = 'row ' + role;
+  const av = document.createElement('div');
+  av.className = 'avatar';
+  av.textContent = role === 'user' ? '我' : (role === 'agent' ? '👨‍💼' : '🤖');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
   const div = document.createElement('div');
-  div.className = 'msg ' + role;
+  div.className = 'msg';
   div.textContent = text;
+  bubble.appendChild(div);
   if (extra && extra.tool) {
     const hint = document.createElement('div');
     hint.className = 'toolhint';
     hint.textContent = '🔧 ' + toolNames[extra.tool] + '（已完成）';
-    div.prepend(hint);
+    bubble.prepend(hint);
   }
-  document.getElementById('msgs').appendChild(div);
+  row.appendChild(av);
+  row.appendChild(bubble);
+  document.getElementById('msgs').appendChild(row);
   scrollBottom();
   return div;
 }
@@ -144,8 +240,8 @@ async function sendMsg() {
   addMsg('user', text);
 
   const typing = document.createElement('div');
-  typing.className = 'typing msg bot';
-  typing.innerHTML = '<span class="dots">思考中</span>';
+  typing.className = 'row bot typing';
+  typing.innerHTML = '<div class="avatar">🤖</div><div class="bubble"><div class="msg"><span class="dots">思考中</span></div></div>';
   document.getElementById('msgs').appendChild(typing);
   scrollBottom();
 
@@ -165,7 +261,7 @@ async function sendMsg() {
         if (!line.startsWith('data: ')) continue;
         const evt = JSON.parse(line.slice(6));
         if (evt.type === 'tool') {
-          typing.innerHTML = '🔧 ' + (toolNames[evt.name] || evt.name);
+          typing.querySelector('.msg').innerHTML = '🔧 ' + (toolNames[evt.name] || evt.name);
         } else if (evt.type === 'final') {
           typing.remove();
           const d = evt.data;
@@ -173,12 +269,12 @@ async function sendMsg() {
           if (d.receipt && d.receipt.approved) {
             const rc = document.createElement('div');
             rc.className = 'receipt';
-            rc.innerHTML = `<b>📋 办结回执</b> ${d.receipt.action_id}<br>${d.receipt.message}<div class="undo"><button onclick="undoAction('${d.receipt.action_id}')">撤销本次办理</button> <span style="font-size:11px;opacity:.8">${d.receipt.undo_deadline} 前</span></div>`;
+            rc.innerHTML = `<b>📋 办结回执</b> ${d.receipt.action_id}<br>${d.receipt.message}<div class="undo"><button onclick="undoAction('${d.receipt.action_id}')">撤销本次办理</button> <span style="font-size:11px;opacity:.75">${d.receipt.undo_deadline} 前</span></div>`;
             div.appendChild(rc);
           }
           if (d.ticket_id) {
             const tk = document.createElement('div');
-            tk.className = 'receipt'; tk.style.background = '#fffbeb'; tk.style.borderColor = '#fde047'; tk.style.color = '#92400e';
+            tk.className = 'receipt warn';
             tk.textContent = `🎫 已创建人工工单 ${d.ticket_id}，坐席将带着对话摘要接入，无需重复描述。`;
             div.appendChild(tk);
           }

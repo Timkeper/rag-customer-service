@@ -5,44 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>智答 · 经营洞察</title>
 <style>
+  :root {
+    --brand: #7c5cf0; --brand-deep: #6446d8; --brand-grad: linear-gradient(135deg, #8b6cf5, #6647d9);
+    --ink: #221c33; --ink-2: #5f5877; --ink-3: #9b94b3;
+    --bg: #f6f5fa; --card: #fff; --line: #e9e6f2;
+    --ok: #2fb380; --bad: #e0566b;
+    --shadow: 0 8px 30px rgba(100,70,216,.08), 0 2px 6px rgba(34,28,51,.04);
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; }
-  header { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; padding: 14px 22px; }
-  header h1 { font-size: 17px; }
-  header p { font-size: 12px; opacity: .85; margin-top: 2px; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
-  .stat .v { font-size: 26px; font-weight: 700; color: #5b21b6; }
-  .stat .l { font-size: 12px; color: #64748b; margin-top: 2px; }
-  .panel { background: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
-  .panel h2 { font-size: 15px; color: #1e293b; margin-bottom: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { background: #f8fafc; color: #475569; text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
-  td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; }
-  .dec { font-weight: 700; padding: 1px 8px; border-radius: 8px; font-size: 12px; }
-  .dec.approved { background: #dcfce7; color: #15803d; }
-  .dec.denied { background: #fee2e2; color: #b91c1c; }
-  .dec.undone { background: #fef3c7; color: #b45309; }
-  .topics { display: flex; flex-wrap: wrap; gap: 8px; }
-  .topic { background: #ede9fe; color: #5b21b6; border-radius: 16px; padding: 5px 14px; font-size: 13px; }
-  .topic b { font-size: 15px; }
-  #genBtn { background: #7c3aed; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; cursor: pointer; font-weight: 600; }
-  #genBtn:disabled { background: #a78bfa; }
-  #report { margin-top: 14px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; color: #2d1b4e; display: none; }
-  .lock { position: fixed; inset: 0; background: rgba(255,255,255,.96); display: flex; align-items: center; justify-content: center; z-index: 10; }
-  .lock .card { background: #fff; padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; }
-  .lock input { padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; margin-top: 10px; }
-  .lock button { display: block; width: 100%; margin-top: 10px; padding: 10px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+  body { font-family: -apple-system, "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
+  .bg-deco { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .bg-deco::before { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; background: #ddd4f9; filter: blur(95px); opacity: .4; top: -150px; right: -120px; }
+  .bg-deco::after { content: ""; position: absolute; width: 320px; height: 320px; border-radius: 50%; background: #e4defa; filter: blur(90px); opacity: .35; bottom: -120px; left: -100px; }
+
+  header { position: relative; z-index: 2; background: var(--brand-grad); color: #fff; padding: 18px 26px; box-shadow: 0 4px 24px rgba(100,70,216,.28); }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+  header p { font-size: 12px; opacity: .85; margin-top: 3px; }
+
+  .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .stat {
+    background: var(--card); border-radius: 18px; padding: 20px; box-shadow: var(--shadow);
+    border: 1px solid rgba(255,255,255,.9); position: relative; overflow: hidden; transition: transform .2s;
+  }
+  .stat:hover { transform: translateY(-2px); }
+  .stat::after { content: ""; position: absolute; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, rgba(124,92,240,.1), transparent); top: -30px; right: -30px; }
+  .stat .ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+  .stat .v { font-size: 28px; font-weight: 800; background: var(--brand-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .stat .v.red { background: linear-gradient(135deg, #f17b8d, #d94b63); -webkit-background-clip: text; color: transparent; }
+  .stat .l { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+
+  .panel { background: var(--card); border-radius: 18px; padding: 20px 22px; margin-bottom: 18px; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,.9); }
+  .panel h2 { font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  th { background: #f4f1fb; color: var(--ink-2); text-align: left; padding: 10px 12px; font-weight: 600; }
+  th:first-child { border-radius: 10px 0 0 10px; } th:last-child { border-radius: 0 10px 10px 0; }
+  td { padding: 10px 12px; color: #3d3653; }
+  tr:hover td { background: #faf8fd; }
+  .dec { font-weight: 700; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+  .dec.approved { background: #def7ec; color: #0e9f6e; }
+  .dec.denied { background: #fde8e8; color: #c0392b; }
+  .dec.undone { background: #fdf3dc; color: #b7791f; }
+  .topics { display: flex; flex-wrap: wrap; gap: 10px; }
+  .topic {
+    background: linear-gradient(135deg, #f1ecfd, #e8e0fa); color: var(--brand-deep); border-radius: 18px;
+    padding: 8px 18px; font-size: 13px; font-weight: 600; border: 1px solid #e2d9f7;
+  }
+  .topic b { font-size: 15px; margin-left: 3px; }
+  #genBtn {
+    background: var(--brand-grad); color: #fff; border: none; border-radius: 12px; padding: 12px 26px;
+    font-size: 14px; cursor: pointer; font-weight: 700; box-shadow: 0 8px 18px rgba(100,70,216,.3); transition: transform .15s;
+  }
+  #genBtn:hover:not(:disabled) { transform: translateY(-1px); }
+  #genBtn:disabled { background: #b9a9ec; box-shadow: none; }
+  #report {
+    margin-top: 16px; background: linear-gradient(135deg, #f8f6fe, #f3eefc); border: 1px solid #e4dcf7;
+    border-radius: 14px; padding: 20px; font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #38305a; display: none;
+  }
+  .lock { position: fixed; inset: 0; background: rgba(246,245,250,.96); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .lock .card { background: #fff; padding: 40px 36px; border-radius: 24px; box-shadow: var(--shadow); text-align: center; width: 360px; animation: rise .5s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .lock .icon { width: 70px; height: 70px; margin: 0 auto 14px; border-radius: 22px; background: linear-gradient(135deg, #ece5fc, #ddd2f8); display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .lock h2 { font-size: 18px; margin-bottom: 16px; }
+  .lock input { width: 100%; padding: 13px 16px; border: 1.5px solid var(--line); border-radius: 13px; font-size: 14px; outline: none; }
+  .lock input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(124,92,240,.12); }
+  .lock button { width: 100%; margin-top: 12px; padding: 13px; background: var(--brand-grad); color: #fff; border: none; border-radius: 13px; cursor: pointer; font-weight: 700; font-size: 14px; box-shadow: 0 8px 18px rgba(100,70,216,.3); }
 </style>
 </head>
 <body>
 
+<div class="bg-deco"></div>
+
 <div class="lock" id="lock">
   <div class="card">
-    <h2>📊 洞察台登录</h2>
+    <div class="icon">📊</div>
+    <h2>洞察台登录</h2>
     <input id="pwd" type="password" placeholder="密码（同坐席台）">
-    <button onclick="doLogin()">进入</button>
+    <button onclick="doLogin()">进 入</button>
   </div>
 </div>
 
@@ -60,7 +99,7 @@
   </div>
 
   <div class="panel">
-    <h2>🧾 Agentic 办结 · 审计日志（含被拒绝的动作）</h2>
+    <h2>🧾 Agentic 办结 · 审计日志<span style="font-size:12px;color:#9b94b3;font-weight:400">（含被拒绝的动作）</span></h2>
     <table>
       <thead><tr><th>时间</th><th>用户</th><th>动作</th><th>订单</th><th>金额</th><th>决策</th><th>策略原因</th></tr></thead>
       <tbody id="auditBody"></tbody>
@@ -68,7 +107,7 @@
   </div>
 
   <div class="panel">
-    <h2>📈 商家改进周报（AI 从客服对话中生成）</h2>
+    <h2>📈 商家改进周报<span style="font-size:12px;color:#9b94b3;font-weight:400">（AI 从客服对话中生成）</span></h2>
     <button id="genBtn" onclick="genReport()">生成周报</button>
     <div id="report"></div>
   </div>
@@ -91,20 +130,20 @@ async function loadAll() {
   const ag = s.agentic || {};
   const appr = ag.approved || { count: 0, amount: 0 }, deny = ag.denied || { count: 0, amount: 0 };
   document.getElementById('stats').innerHTML = `
-    <div class="stat"><div class="v">${s.sessions || 0}</div><div class="l">服务会话</div></div>
-    <div class="stat"><div class="v">${s.messages || 0}</div><div class="l">对话消息</div></div>
-    <div class="stat"><div class="v">${s.tickets || 0}</div><div class="l">人工工单</div></div>
-    <div class="stat"><div class="v">${appr.count}</div><div class="l">AI 自动办结（¥${appr.amount.toFixed ? appr.amount.toFixed(0) : appr.amount}）</div></div>
-    <div class="stat"><div class="v" style="color:#b91c1c">${deny.count}</div><div class="l">策略拦截（越权/超额）</div></div>`;
+    <div class="stat"><div class="ico" style="background:#e8f0fe">💬</div><div class="v">${s.sessions || 0}</div><div class="l">服务会话</div></div>
+    <div class="stat"><div class="ico" style="background:#e6f7f1">✉️</div><div class="v">${s.messages || 0}</div><div class="l">对话消息</div></div>
+    <div class="stat"><div class="ico" style="background:#fdf3dc">🎫</div><div class="v">${s.tickets || 0}</div><div class="l">人工工单</div></div>
+    <div class="stat"><div class="ico" style="background:#def7ec">⚡</div><div class="v">${appr.count}</div><div class="l">AI 自动办结（¥${appr.amount.toFixed ? appr.amount.toFixed(0) : appr.amount}）</div></div>
+    <div class="stat"><div class="ico" style="background:#fde8e8">🛡</div><div class="v red">${deny.count}</div><div class="l">策略拦截（越权/超额）</div></div>`;
   document.getElementById('topics').innerHTML = Object.entries(s.topics || {})
-    .map(([k, v]) => `<span class="topic">${k} <b>${v}</b></span>`).join('') || '<span style="color:#94a3b8">暂无数据</span>';
+    .map(([k, v]) => `<span class="topic">${k} <b>${v}</b></span>`).join('') || '<span style="color:#9b94b3">暂无数据</span>';
 
   const a = await fetch('/api/audit', { headers: { 'X-Token': token } }).then(r => r.json());
   document.getElementById('auditBody').innerHTML = (a.audit || []).map(x => `
     <tr><td>${x.ts}</td><td>${x.user_id}</td><td>${x.action}</td><td>${x.order_id}</td>
     <td>${x.amount != null ? '¥' + x.amount : '-'}</td>
-    <td><span class="dec ${x.decision}${x.undone ? '' : ''}">${x.decision}${x.undone ? '→已撤销' : ''}</span></td>
-    <td style="font-size:12px;color:#64748b">${x.policy_reason || ''}</td></tr>`).join('') || '<tr><td colspan="7" style="color:#94a3b8">暂无审计记录</td></tr>';
+    <td><span class="dec ${x.decision}">${x.decision}${x.undone ? '→已撤销' : ''}</span></td>
+    <td style="font-size:12px;color:#5f5877">${x.policy_reason || ''}</td></tr>`).join('') || '<tr><td colspan="7" style="color:#9b94b3;text-align:center;padding:24px">暂无审计记录</td></tr>';
 }
 async function genReport() {
   const btn = document.getElementById('genBtn');
