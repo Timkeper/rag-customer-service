@@ -1,8 +1,0 @@
-{
-  "version": "2.0",
-  "envId": "portfolio-d5gptwcjq4c6759da",
-  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
-  "cloudrun": {
-    "name": "zhida-agent"
-  }
-}

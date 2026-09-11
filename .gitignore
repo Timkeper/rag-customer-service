@@ -6,3 +6,5 @@ src/server.log
 src/*.log
 *.pyc
 .DS_Store
+
+cloudbaserc.json
