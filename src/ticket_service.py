@@ -9,6 +9,7 @@
 """
 
 import sqlite3
+import uuid
 from datetime import datetime
 from config import SQLITE_DB_PATH
 import session_store
@@ -32,7 +33,8 @@ def create_ticket(session_id: str, reason: str, priority: str = "普通",
     """
     session = session_store.get_session(session_id) if session_id else None
     user_id = session["user_id"] if session else None
-    ticket_id = f"T{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    # 时间戳精确到微秒 + 随机后缀，避免同秒并发撞号
+    ticket_id = f"T{datetime.now().strftime('%Y%m%d%H%M%S%f')[:16]}{uuid.uuid4().hex[:3].upper()}"
 
     conn = _conn()
     conn.execute("""

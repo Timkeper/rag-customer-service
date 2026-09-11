@@ -1,0 +1,15 @@
+.git
+.gitignore
+src/__pycache__/
+**/__pycache__/
+src/*.log
+src/.env
+01-tools/
+day1-2-learning/
+portfolio-build/
+05-scripts/
+03-eval-dataset/
+04-rubric/
+README.md
+Dockerfile
+.dockerignore

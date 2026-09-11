@@ -9,6 +9,27 @@
 运行：python server.py  →  http://127.0.0.1:8000
 """
 
+import sys
+# 编码保险丝：容器环境 stdout 可能为 ASCII，中文/emoji print 会炸（UnicodeEncodeError）
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
+# 终极保险：全局替换 print，编码错误降级为替换字符，绝不抛异常
+import builtins
+_orig_print = builtins.print
+def _safe_print(*args, **kwargs):
+    try:
+        _orig_print(*args, **kwargs)
+    except UnicodeEncodeError:
+        try:
+            _orig_print(*(str(a).encode("ascii", "replace").decode("ascii") for a in args), **kwargs)
+        except Exception:
+            pass
+builtins.print = _safe_print
+
 import json
 import hashlib
 import threading
@@ -41,7 +62,7 @@ def get_agent():
 
 @app.on_event("startup")
 async def startup():
-    """首次启动自动初始化数据库（幂等）"""
+    """首次启动自动初始化数据库（幂等）；Agent 懒加载——页面立即可用，密钥缺失时对话返回明确提示"""
     import init_db
     conn = init_db.init_database()
     cur = conn.cursor()
@@ -50,7 +71,21 @@ async def startup():
         init_db.insert_mock_data(conn)
         print("📦 首次启动：已灌入演示订单数据")
     conn.close()
-    get_agent()  # 预热 RAG（首次会构建向量库）
+
+
+BUILD_TAG = "20260911-d"  # 部署版本标记（排查线上跑的是哪版代码）
+
+
+@app.get("/api/health")
+async def health():
+    """健康检查：数据库/页面立即可用；Agent 状态单独报告"""
+    import traceback
+    try:
+        get_agent()
+        agent_status = "ready"
+    except Exception as e:
+        agent_status = "not_ready：" + repr(e)[:150] + " || TB: " + traceback.format_exc()[-350:].replace("\n", " | ")
+    return {"status": "ok", "build": BUILD_TAG, "agent": agent_status.split("：")[0], "detail": agent_status}
 
 
 def _db():
@@ -114,14 +149,23 @@ async def chat(req: Request):
     q: queue.Queue = queue.Queue()
 
     def worker():
-        agent = get_agent()
+        try:
+            agent = get_agent()
+        except Exception as e:
+            q.put({"type": "final", "data": {
+                "reply": "抱歉，AI 服务暂未就绪（密钥未配置）。请在云托管控制台为服务配置环境变量 DEEPSEEK_API_KEY 与 ZHIPU_API_KEY 后重试。",
+                "tool_used": "error", "escalated": False, "error": str(e)[:200]}})
+            q.put(None)
+            return
         with _chat_lock:
             agent.on_event = lambda evt: q.put(evt)
             try:
                 result = agent.chat(message, session_id=session_id)
                 q.put({"type": "final", "data": result})
             except Exception as e:
-                q.put({"type": "final", "data": {"reply": f"服务异常：{e}", "tool_used": "error", "escalated": True}})
+                import traceback
+                q.put({"type": "final", "data": {"reply": f"服务异常：{e}", "tool_used": "error", "escalated": True,
+                                                 "tb": traceback.format_exc()[-500:]}})
             finally:
                 agent.on_event = None
                 q.put(None)
