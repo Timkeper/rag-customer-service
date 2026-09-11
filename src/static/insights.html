@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智答 · 经营洞察</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; }
+  header { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; padding: 14px 22px; }
+  header h1 { font-size: 17px; }
+  header p { font-size: 12px; opacity: .85; margin-top: 2px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .stat .v { font-size: 26px; font-weight: 700; color: #5b21b6; }
+  .stat .l { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .panel { background: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .panel h2 { font-size: 15px; color: #1e293b; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f8fafc; color: #475569; text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  .dec { font-weight: 700; padding: 1px 8px; border-radius: 8px; font-size: 12px; }
+  .dec.approved { background: #dcfce7; color: #15803d; }
+  .dec.denied { background: #fee2e2; color: #b91c1c; }
+  .dec.undone { background: #fef3c7; color: #b45309; }
+  .topics { display: flex; flex-wrap: wrap; gap: 8px; }
+  .topic { background: #ede9fe; color: #5b21b6; border-radius: 16px; padding: 5px 14px; font-size: 13px; }
+  .topic b { font-size: 15px; }
+  #genBtn { background: #7c3aed; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; cursor: pointer; font-weight: 600; }
+  #genBtn:disabled { background: #a78bfa; }
+  #report { margin-top: 14px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; color: #2d1b4e; display: none; }
+  .lock { position: fixed; inset: 0; background: rgba(255,255,255,.96); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .lock .card { background: #fff; padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; }
+  .lock input { padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; margin-top: 10px; }
+  .lock button { display: block; width: 100%; margin-top: 10px; padding: 10px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="card">
+    <h2>📊 洞察台登录</h2>
+    <input id="pwd" type="password" placeholder="密码（同坐席台）">
+    <button onclick="doLogin()">进入</button>
+  </div>
+</div>
+
+<header>
+  <h1>📊 智答 · 经营洞察</h1>
+  <p>审计日志 · Agentic 办结统计 · 客服对话驱动的改进周报</p>
+</header>
+
+<div class="container">
+  <div class="stats" id="stats"></div>
+
+  <div class="panel">
+    <h2>🗂 用户咨询主题分布</h2>
+    <div class="topics" id="topics"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🧾 Agentic 办结 · 审计日志（含被拒绝的动作）</h2>
+    <table>
+      <thead><tr><th>时间</th><th>用户</th><th>动作</th><th>订单</th><th>金额</th><th>决策</th><th>策略原因</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>📈 商家改进周报（AI 从客服对话中生成）</h2>
+    <button id="genBtn" onclick="genReport()">生成周报</button>
+    <div id="report"></div>
+  </div>
+</div>
+
+<script>
+let token = '';
+async function doLogin() {
+  const pwd = document.getElementById('pwd').value;
+  const r = await fetch('/api/console/login', { method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pwd, agent_name: 'insights' }) });
+  if (!r.ok) { alert('密码错误'); return; }
+  token = (await r.json()).token;
+  document.getElementById('lock').style.display = 'none';
+  loadAll();
+}
+async function loadAll() {
+  const ins = await fetch('/api/insights', { headers: { 'X-Token': token } }).then(r => r.json());
+  const s = ins.stats;
+  const ag = s.agentic || {};
+  const appr = ag.approved || { count: 0, amount: 0 }, deny = ag.denied || { count: 0, amount: 0 };
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="v">${s.sessions || 0}</div><div class="l">服务会话</div></div>
+    <div class="stat"><div class="v">${s.messages || 0}</div><div class="l">对话消息</div></div>
+    <div class="stat"><div class="v">${s.tickets || 0}</div><div class="l">人工工单</div></div>
+    <div class="stat"><div class="v">${appr.count}</div><div class="l">AI 自动办结（¥${appr.amount.toFixed ? appr.amount.toFixed(0) : appr.amount}）</div></div>
+    <div class="stat"><div class="v" style="color:#b91c1c">${deny.count}</div><div class="l">策略拦截（越权/超额）</div></div>`;
+  document.getElementById('topics').innerHTML = Object.entries(s.topics || {})
+    .map(([k, v]) => `<span class="topic">${k} <b>${v}</b></span>`).join('') || '<span style="color:#94a3b8">暂无数据</span>';
+
+  const a = await fetch('/api/audit', { headers: { 'X-Token': token } }).then(r => r.json());
+  document.getElementById('auditBody').innerHTML = (a.audit || []).map(x => `
+    <tr><td>${x.ts}</td><td>${x.user_id}</td><td>${x.action}</td><td>${x.order_id}</td>
+    <td>${x.amount != null ? '¥' + x.amount : '-'}</td>
+    <td><span class="dec ${x.decision}${x.undone ? '' : ''}">${x.decision}${x.undone ? '→已撤销' : ''}</span></td>
+    <td style="font-size:12px;color:#64748b">${x.policy_reason || ''}</td></tr>`).join('') || '<tr><td colspan="7" style="color:#94a3b8">暂无审计记录</td></tr>';
+}
+async function genReport() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.textContent = 'AI 正在分析对话…';
+  try {
+    const r = await fetch('/api/insights/report', { headers: { 'X-Token': token } }).then(r => r.json());
+    const el = document.getElementById('report');
+    el.style.display = 'block';
+    el.textContent = r.report;
+  } finally { btn.disabled = false; btn.textContent = '生成周报'; }
+}
+</script>
+</body>
+</html>

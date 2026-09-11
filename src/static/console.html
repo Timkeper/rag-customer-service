@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智答 · 坐席工作台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
+  header { background: linear-gradient(135deg, #0f766e, #134e4a); color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
+  header h1 { font-size: 16px; }
+  header .who { margin-left: auto; font-size: 13px; opacity: .9; }
+  .wrap { flex: 1; display: flex; overflow: hidden; }
+
+  #loginScreen { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .card { background: #fff; border-radius: 16px; padding: 32px; width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
+  .card h2 { font-size: 18px; margin-bottom: 16px; }
+  .card input { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; margin-bottom: 10px; }
+  .card button { width: 100%; padding: 11px; background: #0f766e; color: #fff; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+  .card .err { color: #dc2626; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .card .demo { margin-top: 12px; font-size: 12px; color: #94a3b8; }
+
+  #main { flex: 1; display: none; }
+  .list { width: 380px; background: #fff; border-right: 1px solid #e2e8f0; overflow-y: auto; }
+  .list .bar { padding: 12px 16px; display: flex; gap: 8px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background: #fff; z-index: 2; }
+  .list .bar button { flex: 1; padding: 7px; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; font-size: 12px; cursor: pointer; }
+  .list .bar button.on { background: #0f766e; color: #fff; border-color: #0f766e; }
+  .ticket { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+  .ticket:hover { background: #f0fdfa; }
+  .ticket.sel { background: #ccfbf1; }
+  .ticket .tid { font-size: 12px; color: #64748b; }
+  .ticket .reason { font-size: 14px; font-weight: 600; margin: 3px 0; color: #1e293b; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; }
+  .badge.待接管 { background: #fee2e2; color: #b91c1c; }
+  .badge.处理中 { background: #fef3c7; color: #b45309; }
+  .badge.已解决 { background: #dcfce7; color: #15803d; }
+  .badge.紧急 { background: #fee2e2; color: #b91c1c; margin-left: 6px; }
+  .badge.普通 { background: #f1f5f9; color: #64748b; margin-left: 6px; }
+
+  .detail { flex: 1; display: flex; flex-direction: column; background: #fff; }
+  .detail .empty { flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; }
+  .d-head { padding: 14px 20px; border-bottom: 1px solid #e2e8f0; }
+  .d-head h3 { font-size: 15px; color: #1e293b; }
+  .summary { margin: 10px 0 0; background: #f0fdfa; border-left: 3px solid #0f766e; border-radius: 6px; padding: 10px 12px; font-size: 13px; color: #134e4a; line-height: 1.6; }
+  .d-actions { padding: 10px 20px; display: flex; gap: 10px; border-bottom: 1px solid #e2e8f0; }
+  .d-actions button { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; font-weight: 600; }
+  .btn-take { background: #0f766e; color: #fff; }
+  .btn-resolve { background: #dcfce7; color: #15803d; }
+  .convo { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; background: #fafafa; }
+  .cm { max-width: 75%; padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; }
+  .cm.user { align-self: flex-end; background: #e0f2fe; color: #0c4a6e; }
+  .cm.assistant { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #1e293b; }
+  .cm.human_agent { align-self: flex-start; background: #fef9c3; border: 1px solid #fde047; color: #713f12; }
+  .reply-bar { display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid #e2e8f0; }
+  .reply-bar input { flex: 1; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 20px; font-size: 14px; }
+  .reply-bar button { padding: 0 20px; background: #0f766e; color: #fff; border: none; border-radius: 20px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎧 智答 · 坐席工作台</h1>
+  <div class="who" id="who"></div>
+</header>
+
+<div id="loginScreen">
+  <div class="card">
+    <h2>🎧 坐席登录</h2>
+    <input id="agentName" placeholder="坐席昵称（如：小王）">
+    <input id="password" type="password" placeholder="工作台密码">
+    <button onclick="login()">登录</button>
+    <div class="err" id="loginErr"></div>
+    <div class="demo">演示密码：zhida2026</div>
+  </div>
+</div>
+
+<div class="wrap" id="main">
+  <div class="list">
+    <div class="bar">
+      <button class="on" data-st="" onclick="setFilter(this)">全部</button>
+      <button data-st="待接管" onclick="setFilter(this)">待接管</button>
+      <button data-st="处理中" onclick="setFilter(this)">处理中</button>
+      <button data-st="已解决" onclick="setFilter(this)">已解决</button>
+    </div>
+    <div id="ticketList"></div>
+  </div>
+  <div class="detail" id="detail"><div class="empty">← 选择一个工单查看 AI 摘要与完整对话</div></div>
+</div>
+
+<script>
+let token = '', agentName = '', curTicket = null, filter = '', timer = null;
+
+async function login() {
+  agentName = document.getElementById('agentName').value.trim() || '坐席';
+  const pwd = document.getElementById('password').value;
+  const r = await fetch('/api/console/login', { method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pwd, agent_name: agentName }) });
+  if (!r.ok) { document.getElementById('loginErr').textContent = '密码错误'; return; }
+  const d = await r.json();
+  token = d.token;
+  document.getElementById('who').textContent = '👤 ' + agentName;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('main').style.display = 'flex';
+  refresh();
+  timer = setInterval(refresh, 5000);
+}
+
+function setFilter(btn) {
+  document.querySelectorAll('.bar button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  filter = btn.dataset.st;
+  refresh();
+}
+
+async function refresh() {
+  const r = await fetch('/api/tickets' + (filter ? '?status=' + filter : ''), { headers: { 'X-Token': token } }).then(r => r.json());
+  const el = document.getElementById('ticketList');
+  el.innerHTML = '';
+  (r.tickets || []).forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'ticket' + (curTicket === t.ticket_id ? ' sel' : '');
+    d.onclick = () => showDetail(t);
+    d.innerHTML = `<div class="tid">${t.ticket_id} · ${t.created_at || ''}</div>
+      <div class="reason">${t.reason || ''}</div>
+      <span class="badge ${t.status}">${t.status}</span><span class="badge ${t.priority}">${t.priority}</span>`;
+    el.appendChild(d);
+  });
+}
+
+async function showDetail(t) {
+  curTicket = t.ticket_id;
+  refresh();
+  const el = document.getElementById('detail');
+  let convHtml = '<div class="empty">无对话记录</div>';
+  if (t.session_id) {
+    const m = await fetch('/api/messages/' + t.session_id).then(r => r.json());
+    convHtml = (m.messages || []).map(x =>
+      `<div class="cm ${x.role}">${x.role === 'human_agent' ? '👨‍💼 ' : (x.role === 'user' ? '👤 ' : '🤖 ')}${esc(x.content)}</div>`).join('');
+  }
+  el.innerHTML = `
+    <div class="d-head">
+      <h3>${t.ticket_id} · ${esc(t.reason || '')}</h3>
+      <span class="badge ${t.status}">${t.status}</span><span class="badge ${t.priority}">${t.priority}</span>
+      ${t.assigned_to ? ` · 坐席：${esc(t.assigned_to)}` : ''}
+      <div class="summary"><b>🤖 AI 摘要：</b>${esc(t.summary || '（无）')}</div>
+    </div>
+    <div class="d-actions">
+      ${t.status === '待接管' ? '<button class="btn-take" onclick="takeTicket()">接管工单</button>' : ''}
+      ${t.status === '处理中' ? '<button class="btn-resolve" onclick="resolveTicket()">标记解决</button>' : ''}
+    </div>
+    <div class="convo">${convHtml}</div>
+    ${t.status === '处理中' ? `<div class="reply-bar">
+      <input id="replyInput" placeholder="以人工身份回复买家（直接出现在买家对话中）" onkeydown="if(event.key==='Enter')reply()">
+      <button onclick="reply()">发送</button></div>` : ''}`;
+}
+
+async function takeTicket() {
+  await api('/api/tickets/take', { ticket_id: curTicket, agent_name: agentName });
+  refresh(); const t = (await fetch('/api/tickets', { headers: { 'X-Token': token } }).then(r => r.json())).tickets.find(x => x.ticket_id === curTicket);
+  if (t) showDetail(t);
+}
+async function resolveTicket() {
+  await api('/api/tickets/resolve', { ticket_id: curTicket });
+  refresh();
+}
+async function reply() {
+  const input = document.getElementById('replyInput');
+  const text = input.value.trim();
+  if (!text) return;
+  await api('/api/tickets/reply', { ticket_id: curTicket, agent_name: agentName, content: text });
+  input.value = '';
+  const t = (await fetch('/api/tickets', { headers: { 'X-Token': token } }).then(r => r.json())).tickets.find(x => x.ticket_id === curTicket);
+  if (t) showDetail(t);
+}
+async function api(url, body) {
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Token': token }, body: JSON.stringify(body) }).then(r => r.json());
+}
+function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+</script>
+</body>
+</html>
