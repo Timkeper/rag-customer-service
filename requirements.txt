@@ -1,0 +1,9 @@
+langchain==0.2.17
+langchain-openai==0.1.25
+langchain-community==0.2.19
+chromadb==1.5.9
+fastapi==0.140.13
+uvicorn==0.51.0
+python-dotenv==1.2.2
+zhipuai==2.1.5.20250825
+httpx==0.28.1

@@ -1,9 +1,8 @@
-node_modules
-__pycache__/
-*.pyc
-.env
 src/.env
+src/__pycache__/
+__pycache__/
 src/data/
+src/server.log
+src/eval_v2.log
+*.pyc
 .DS_Store
-.idea/
-.vscode/
