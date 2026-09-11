@@ -1,0 +1,27 @@
+{
+  "baseline": {
+    "latency_avg": 959.82,
+    "accuracy": 2.78,
+    "relevance": 3.72,
+    "completeness": 2.34,
+    "safety": 4.16,
+    "task_rate": 0.38
+  },
+  "rag": {
+    "latency_avg": 1365.26,
+    "accuracy": 3.38,
+    "relevance": 3.88,
+    "completeness": 2.88,
+    "safety": 4.52,
+    "task_rate": 0.42
+  },
+  "agent": {
+    "latency_avg": 2440.48,
+    "accuracy": 4.76,
+    "relevance": 4.86,
+    "completeness": 4.6,
+    "safety": 4.88,
+    "task_rate": 0.9,
+    "tool_acc": 0.86
+  }
+}

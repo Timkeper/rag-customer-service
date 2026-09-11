@@ -245,9 +245,10 @@ def build_story():
         "用数据验证了 RAG+Agent 方案在业务办理与转人工场景的显著价值，并形成「评测—分析—优化」闭环。",
         ST['CoverSummary']))
     story.append(Spacer(1, 35*mm))
-    story.append(Paragraph("技术栈：LangChain · Chroma · DeepSeek · 智谱Embedding · SQLite · Gradio",
+    story.append(Paragraph("技术栈：LangChain(tool_calls) · DeepSeek · Chroma · 智谱Embedding · FastAPI+SSE · SQLite · Web三端",
                            ST['BodyMuted']))
-    story.append(Paragraph("应聘岗位：京东科技 · AI产品经理实习生", ST['BodyMuted']))
+    story.append(Paragraph("v2 升级：多轮会话+鉴权 · Agentic办结(策略/审计/撤销) · 工单化人机协作 · LLM-as-Judge评测 · 可部署", ST['BodyMuted']))
+    story.append(Paragraph("应聘岗位：AI 产品经理（实习）", ST['BodyMuted']))
     story.append(PageBreak())
 
     # ========== P2 目录/项目概述 ==========
@@ -263,20 +264,20 @@ def build_story():
     story.append(Paragraph("核心成果（一图速览）", ST['H2']))
     story.append(Spacer(1, 6))
     story.append(metrics_row([
-        ("业务办理能力", "0→100%", SEM_SUCCESS),
-        ("转人工触发率", "0→100%", SEM_SUCCESS),
-        ("工具选择准确率", "80%", ACCENT_2),
+        ("任务完成率", "38%→90%", SEM_SUCCESS),
+        ("转人工触发率", "100%", SEM_SUCCESS),
+        ("工具选择准确率", "86%", ACCENT_2),
     ]))
     story.append(Spacer(1, 8))
     story.append(metrics_row([
         ("评测题集", "50题", HEADER_FILL),
         ("对比方案", "3组", HEADER_FILL),
-        ("优化提升", "+38%", ACCENT),
+        ("评测驱动优化", "+12pp", ACCENT),
     ]))
     story.append(Spacer(1, 12))
     story.append(info_card("项目一句话总结",
-        "一个「电商售后智能客服」：用 RAG 答知识、用 Agent 办业务，自建评测体系，"
-        "用三维度数据证明 RAG+Agent 将转人工触发率与业务办理能力从 0% 提升到 100%。"))
+        "一个「能办事」的电商售后 Agent：用 RAG 答知识、用工具办业务、用策略引擎管权限（额度内直接办结+全程审计+可撤销），"
+        "自建 50 题评测集并以 LLM-as-Judge 自动评分——任务完成率 38%→90%（对照裸模型）。"))
     story.append(PageBreak())
 
     # ========== P3 背景与痛点 ==========
@@ -479,18 +480,19 @@ def build_story():
     story.append(data_table(
         ["指标", "Baseline裸模型", "RAG纯检索", "Agent完整版", "结论"],
         [
-            ["转人工触发率", "0%", "0%", "100%", "仅Agent能转人工"],
-            ["业务办理能力", "0%", "100%", "100%", "需工具调用支持"],
-            ["工具选择准确率", "—", "—", "80%", "Agent表现良好"],
-            ["误调用率", "0%", "0%", "20%", "边界识别待优化"],
-            ["平均延迟", "1672ms", "2290ms", "3654ms", "Agent因多轮调用更慢"],
+            ["任务完成率", "38%", "42%", "90%", "Agent 可办业务+兜底"],
+            ["准确性(LLM Judge)", "2.78", "3.38", "4.76", "RAG+事实工具显著降幻觉"],
+            ["转人工触发率", "0%", "0%", "100%", "仅Agent能识别并转人工"],
+            ["工具选择准确率", "—", "—", "86%", "评测驱动修复后+12pp"],
+            ["误调用率(E类)", "0%", "0%", "20%", "边界识别待优化(已知短板)"],
+            ["平均延迟", "0.96s", "1.37s", "2.44s", "多轮工具调用换取完成率"],
         ],
         col_ratios=[0.22, 0.20, 0.17, 0.18, 0.23]
     ))
     story.append(Spacer(1, 8))
     story.append(Paragraph("一句话结论", ST['Quote']))
     story.append(Paragraph(
-        "「裸模型和纯RAG都无法办理业务和转人工，而 RAG+Agent 方案实现了 100% 的转人工触发与业务办理能力。」",
+        "「裸模型和纯RAG答不了业务也转不了人工；Agent 方案任务完成率 90%、四维质量分全面领先——代价是2.4秒延迟，这笔账在客服场景划算。」",
         ST['Quote']))
     story.append(PageBreak())
 

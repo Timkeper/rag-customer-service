@@ -130,25 +130,26 @@ def plot_comparison():
     plt.savefig(f"{CHARTS_DIR}/comparison_latency.png", dpi=150, bbox_inches="tight")
     print(f"✅ 延迟对比图已保存：{CHARTS_DIR}/comparison_latency.png")
 
-    # === 图3：版本演进对比（真实数据：v1 七月评测 vs v2 当前评测，D类转人工触发率）===
-    # v2 变化：多轮会话/鉴权/工单化转人工——用两次真实评测的 D 类触发率对比，不再使用估计值
+    # === 图3：评测驱动的真实优化案例（首轮 v2 评测 → 提示词修复后复测，工具选择准确率）===
+    # 真实故事：首轮评测发现 Agent 在"政策题不查知识库/办理题停在确认"两类问题失误（74%），
+    # 修复系统提示词后复测提升至 86%。两次数据均为真实评测 CSV，无人工估计值。
     try:
         import glob as _glob
-        v1_files = _glob.glob(str(RESULTS_DIR / "eval_agent_20260729_1050.csv"))
-        v2_files = sorted(_glob.glob(str(RESULTS_DIR / "eval_v2_agent_*.csv")))
-        if v1_files and v2_files:
-            v1_df = pd.read_csv(v1_files[0])
-            v2_df = pd.read_csv(v2_files[-1])
-            v1_d = v1_df[v1_df["category"].astype(str).str.startswith("D")]["escalated"].mean() * 100
-            v2_d = v2_df[v2_df["category"].astype(str).str.startswith("D")]["escalated"].mean() * 100
+        _rd = Path(RESULTS_DIR)
+        v2_files = sorted(_glob.glob(str(_rd / "eval_v2_agent_*.csv")))
+        if len(v2_files) >= 2:
+            before_df = pd.read_csv(v2_files[0])
+            after_df = pd.read_csv(v2_files[-1])
+            _ta = lambda df: pd.to_numeric(df["tool_correct"], errors="coerce").dropna().mean() * 100
+            v1_d, v2_d = _ta(before_df), _ta(after_df)
             fig3, ax3 = plt.subplots(figsize=(8, 5))
-            opt_labels = [f"v1 版\n(2026-07-29 评测)", f"v2 版\n(当前评测)"]
+            opt_labels = [f"修复前\n(首轮评测)", f"修复后\n(复测)"]
             opt_vals = [round(v1_d, 1), round(v2_d, 1)]
             bars3 = ax3.bar(opt_labels, opt_vals, color=["#FFA07A", "#90EE90"], edgecolor="black", linewidth=0.5)
-            ax3.set_title("版本演进：D类「应转人工」触发率\n（v1→v2：转人工全面工单化+确认门，真实评测数据）",
-                          fontsize=13, fontweight="bold", pad=10)
-            ax3.set_ylabel("D类转人工触发率 (%)")
-            ax3.set_ylim(0, 120)
+            ax3.set_title("评测驱动的真实优化：Agent 工具选择准确率\n（首轮评测发现政策/办理类失误 → 修复提示词 → 复测验证）",
+                          fontsize=12.5, fontweight="bold", pad=10)
+            ax3.set_ylabel("工具选择准确率 (%)")
+            ax3.set_ylim(0, 100)
             ax3.grid(axis="y", alpha=0.3)
             for bar, val in zip(bars3, opt_vals):
                 ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
@@ -156,15 +157,15 @@ def plot_comparison():
             delta = v2_d - v1_d
             ax3.annotate("", xy=(1, v2_d), xytext=(0, v1_d),
                          arrowprops=dict(arrowstyle="->", color="red", lw=2))
-            ax3.text(0.5, max(v1_d, v2_d) + 12, f"{delta:+.1f}%", color="red", fontsize=16,
+            ax3.text(0.5, max(v1_d, v2_d) - 18, f"{delta:+.1f}pp", color="red", fontsize=16,
                      fontweight="bold", ha="center")
             plt.tight_layout()
             plt.savefig(f"{CHARTS_DIR}/optimization_case.png", dpi=150, bbox_inches="tight")
-            print(f"✅ 版本演进图已保存（真实数据：v1={v1_d:.1f}% → v2={v2_d:.1f}%）：{CHARTS_DIR}/optimization_case.png")
+            print(f"✅ 优化案例图已保存（真实数据：{v1_d:.1f}% → {v2_d:.1f}%）：{CHARTS_DIR}/optimization_case.png")
         else:
-            print("⚠️ 跳过版本演进图（需要 eval_agent_20260729 与 eval_v2_agent 两份CSV）")
+            print("⚠️ 跳过优化案例图（需要两份 eval_v2_agent CSV：修复前后各一）")
     except Exception as e:
-        print(f"⚠️ 版本演进图生成失败：{e}")
+        print(f"⚠️ 优化案例图生成失败：{e}")
 
     # === 打印汇总表 ===
     print(f"\n{'='*65}")
