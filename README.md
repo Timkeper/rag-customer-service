@@ -1,5 +1,8 @@
 # 智答 ZhiDa —— 能办事的电商售后 Agent
 
+> 🌐 **在线体验**：https://zhida-agent-312100-12-1464960095.sh.run.tcloudbase.com （买家端 `/` · 坐席台 `/console.html` 密码 zhida2026 · 洞察页 `/insights.html`）
+> 演示账号：尾号 `8002` + 订单 `A100002`（小额，体验自动办理）｜尾号 `8001` + `A100001`（大额，体验转人工+工单+坐席接管）
+
 > 不做挡量的问答机器人，做**额度内直接把事办完、全程可审计、还能反向输出经营洞察**的售后 Agent。
 > 对标海外 Agentic Resolution 趋势（Intercom Fin 3 / Sierra / Decagon 的"端到端解决工单"）——国内 AI 客服普遍停留在"问答 + 转人工"。
 

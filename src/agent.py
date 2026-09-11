@@ -449,12 +449,12 @@ class CustomerServiceAgent:
                     "session_id": session_id, "ticket_id": result.get("ticket_id")}
 
         except Exception as e:
-            result = self._escalate_with_ticket("系统异常")
-            if session_id:
-                session_store.append_message(session_id, "assistant", result["message"])
-            return {"reply": "抱歉，处理您的问题时出现异常，已为您转接人工客服。",
-                    "tool_used": "error", "escalated": True, "error": str(e),
-                    "session_id": session_id, "ticket_id": result.get("ticket_id")}
+            import traceback
+            return {
+                "reply": "抱歉，处理您的问题时出现异常，已为您转接人工客服。",
+                "tool_used": "error", "escalated": True,
+                "error": str(e), "tb": traceback.format_exc()[-600:]
+            }
 
 
 # ============================================
