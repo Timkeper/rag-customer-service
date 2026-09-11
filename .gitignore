@@ -8,3 +8,4 @@ src/*.log
 .DS_Store
 
 cloudbaserc.json
+src/_cloud_env.py

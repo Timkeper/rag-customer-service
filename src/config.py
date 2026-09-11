@@ -9,6 +9,14 @@ from dotenv import load_dotenv
 # 加载.env文件里的API Key（避免把Key硬编码到代码里，这是工程规范）
 load_dotenv()
 
+# 云托管兜底：CLI 部署暂不支持注入环境变量时，从构建期生成的 _cloud_env.py 读取（gitignored）
+try:
+    import _cloud_env as _ce
+    os.environ.setdefault("DEEPSEEK_API_KEY", _ce.DEEPSEEK_API_KEY)
+    os.environ.setdefault("ZHIPU_API_KEY", _ce.ZHIPU_API_KEY)
+except ImportError:
+    pass
+
 # ============ 大模型配置 ============
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "sk-在这里填你的key")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # DeepSeek的API地址
