@@ -3,6 +3,6 @@ src/__pycache__/
 __pycache__/
 src/data/
 src/server.log
-src/eval_v2.log
+src/*.log
 *.pyc
 .DS_Store
