@@ -73,7 +73,7 @@ async def startup():
     conn.close()
 
 
-BUILD_TAG = "20260912-a"  # 部署版本标记（排查线上跑的是哪版代码）
+BUILD_TAG = "20260912-b"  # 部署版本标记（排查线上跑的是哪版代码）
 
 
 @app.get("/api/health")

@@ -74,6 +74,13 @@
   .reply-bar input { flex: 1; padding: 12px 16px; border: 1.5px solid var(--line); border-radius: 22px; font-size: 14px; outline: none; transition: border-color .2s; }
   .reply-bar input:focus { border-color: var(--brand); }
   .reply-bar button { padding: 0 22px; background: var(--brand-grad); color: #fff; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(15,118,110,.3); }
+
+  /* ===== 手机适配：列表/详情上下堆叠 ===== */
+  @media (max-width: 720px) {
+    .wrap { flex-direction: column; }
+    .list { width: 100%; max-height: 42vh; border-right: none; border-bottom: 1px solid var(--line); }
+    .detail .empty .big { font-size: 32px; }
+  }
 </style>
 </head>
 <body>
