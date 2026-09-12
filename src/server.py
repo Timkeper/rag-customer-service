@@ -73,7 +73,16 @@ async def startup():
     conn.close()
 
 
-BUILD_TAG = "20260912-c"  # 部署版本标记（排查线上跑的是哪版代码）
+BUILD_TAG = "20260912-d"  # 部署版本标记（排查线上跑的是哪版代码）
+
+
+@app.middleware("http")
+async def no_cache_html(request, call_next):
+    """HTML 不缓存（JS/CSS 已内联单文件），确保每次发版用户立刻看到新版"""
+    response = await call_next(request)
+    if "text/html" in response.headers.get("content-type", ""):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 @app.get("/api/health")
