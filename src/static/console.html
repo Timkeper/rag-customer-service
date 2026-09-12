@@ -70,16 +70,37 @@
   .cm.user { align-self: flex-end; background: var(--brand-grad); color: #fff; border-bottom-right-radius: 4px; }
   .cm.assistant { align-self: flex-start; background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 4px; }
   .cm.human_agent { align-self: flex-start; background: #fff8e6; border: 1px solid #f5df9a; color: #6b4d0f; border-bottom-left-radius: 4px; }
+
+  /* ===== 三栏布局：对话区 + 右侧资料栏（美洽风格） ===== */
+  .d-body { flex: 1; display: flex; min-height: 0; }
+  .d-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .ctx-panel {
+    width: 300px; border-left: 1px solid var(--line); background: #fff; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ctx-card { background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .ctx-card h4 { font-size: 12px; color: var(--ink-3); font-weight: 600; margin-bottom: 8px; letter-spacing: 1px; }
+  .ctx-user { display: flex; align-items: center; gap: 10px; }
+  .ctx-user .ava { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #a7e8dc, #5ecfb8); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .ctx-user .uid { font-weight: 700; font-size: 14px; }
+  .ctx-user .sub { font-size: 11px; color: var(--ink-3); }
+  .ctx-order { border-left: 3px solid var(--brand); margin-bottom: 8px; }
+  .ctx-order .t { font-size: 13px; font-weight: 600; }
+  .ctx-order .s { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+  .ctx-audit-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #e8efed; color: var(--ink-2); }
+  .ctx-audit-item b { font-size: 11px; }
+  .ctx-empty { font-size: 12px; color: var(--ink-3); }
   .reply-bar { display: flex; gap: 10px; padding: 14px 22px 18px; border-top: 1px solid var(--line); background: #fff; }
   .reply-bar input { flex: 1; padding: 12px 16px; border: 1.5px solid var(--line); border-radius: 22px; font-size: 14px; outline: none; transition: border-color .2s; }
   .reply-bar input:focus { border-color: var(--brand); }
   .reply-bar button { padding: 0 22px; background: var(--brand-grad); color: #fff; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(15,118,110,.3); }
 
-  /* ===== 手机适配：列表/详情上下堆叠 ===== */
+  /* ===== 手机适配：列表/详情上下堆叠，资料栏收窄 ===== */
   @media (max-width: 720px) {
     .wrap { flex-direction: column; }
     .list { width: 100%; max-height: 42vh; border-right: none; border-bottom: 1px solid var(--line); }
     .detail .empty .big { font-size: 32px; }
+    .ctx-panel { width: 220px; }
   }
 </style>
 </head>
@@ -171,6 +192,27 @@ async function showDetail(t) {
     convHtml = (m.messages || []).map(x =>
       `<div class="cm ${x.role}">${x.role === 'human_agent' ? '👨‍💼 ' : (x.role === 'user' ? '👤 ' : '🤖 ')}${esc(x.content)}</div>`).join('');
   }
+  // 右侧资料栏：用户 + 订单 + 最近 Agentic 动作
+  let ctxHtml = '<div class="ctx-empty">加载中…</div>';
+  try {
+    const ctx = await fetch('/api/console/ticket-context/' + t.ticket_id, { headers: { 'X-Token': token } }).then(r => r.ok ? r.json() : null);
+    if (ctx) {
+      const ordersHtml = (ctx.orders || []).map(o =>
+        `<div class="ctx-order"><div class="t">${esc(o.item || o.order_id)}</div><div class="s">${o.order_id} · ¥${o.amount} · ${o.order_status}</div></div>`).join('') || '<div class="ctx-empty">无订单</div>';
+      const auditHtml = (ctx.audit || []).map(a =>
+        `<div class="ctx-audit-item"><b>${a.action}</b> ${a.order_id} ¥${a.amount ?? '-'} → <span style="font-weight:700;color:${a.decision === 'approved' ? '#0e9f6e' : '#c0392b'}">${a.decision}</span></div>`).join('') || '<div class="ctx-empty">无 AI 办结动作</div>';
+      ctxHtml = `
+        <div class="ctx-card"><h4>👤 用户</h4>
+          <div class="ctx-user"><div class="ava">🙂</div>
+          <div><div class="uid">${esc(ctx.user_id || '-')}</div><div class="sub">已通过订单验证</div></div></div>
+        </div>
+        <div class="ctx-card"><h4>📦 名下订单</h4>${ordersHtml}</div>
+        <div class="ctx-card"><h4>🧾 最近 AI 办结动作</h4>${auditHtml}</div>`;
+    } else {
+      ctxHtml = '<div class="ctx-empty">暂无用户资料</div>';
+    }
+  } catch (e) { ctxHtml = '<div class="ctx-empty">资料加载失败</div>'; }
+
   el.innerHTML = `
     <div class="d-head">
       <h3>${t.ticket_id} · ${esc(t.reason || '')}</h3>
@@ -182,10 +224,15 @@ async function showDetail(t) {
       ${t.status === '待接管' ? '<button class="btn-take" onclick="takeTicket()">接管工单</button>' : ''}
       ${t.status === '处理中' ? '<button class="btn-resolve" onclick="resolveTicket()">标记解决</button>' : ''}
     </div>
-    <div class="convo">${convHtml}</div>
-    ${t.status === '处理中' ? `<div class="reply-bar">
-      <input id="replyInput" placeholder="以人工身份回复买家（直接出现在买家对话中）" onkeydown="if(event.key==='Enter')reply()">
-      <button onclick="reply()">发送</button></div>` : ''}`;
+    <div class="d-body">
+      <div class="d-main">
+        <div class="convo">${convHtml}</div>
+        ${t.status === '处理中' ? `<div class="reply-bar">
+          <input id="replyInput" placeholder="以人工身份回复买家（直接出现在买家对话中）" onkeydown="if(event.key==='Enter')reply()">
+          <button onclick="reply()">发送</button></div>` : ''}
+      </div>
+      <div class="ctx-panel">${ctxHtml}</div>
+    </div>`;
 }
 
 async function takeTicket() {

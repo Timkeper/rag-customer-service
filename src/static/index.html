@@ -128,6 +128,42 @@
   }
   #sendBtn:hover:not(:disabled) { transform: translateY(-1px); }
   #sendBtn:disabled { background: #b9c2da; box-shadow: none; cursor: not-allowed; }
+
+  /* ===== 订单卡片（嵌入对话流，小蜜风格） ===== */
+  .ordercard {
+    align-self: stretch; margin: 2px 44px; background: linear-gradient(135deg, #ffffff, #f7f9ff);
+    border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px;
+    box-shadow: 0 4px 14px rgba(26,32,51,.05); position: relative; overflow: hidden;
+  }
+  .ordercard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand-grad); }
+  .ordercard .oc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ordercard .oc-thumb {
+    width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #e8edff, #d5defc);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .ordercard .oc-title { font-size: 14px; font-weight: 700; }
+  .ordercard .oc-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .ordercard .oc-status { margin-left: auto; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #eef1ff; color: var(--brand-deep); }
+  .oc-steps { display: flex; align-items: center; gap: 0; margin-top: 4px; }
+  .oc-step { flex: 1; text-align: center; position: relative; font-size: 11px; color: var(--ink-3); }
+  .oc-step .dot {
+    width: 12px; height: 12px; border-radius: 50%; background: #dde3f0; margin: 0 auto 5px; position: relative; z-index: 1; border: 2px solid #fff;
+  }
+  .oc-step.done .dot { background: var(--brand); box-shadow: 0 0 0 3px rgba(79,110,247,.18); }
+  .oc-step.done { color: var(--brand-deep); font-weight: 600; }
+  .oc-step::before { content: ""; position: absolute; top: 5px; left: -50%; width: 100%; height: 2px; background: #e3e8f4; }
+  .oc-step:first-child::before { display: none; }
+  .oc-step.done::before { background: var(--brand); }
+
+  /* ===== 快捷提问 chips ===== */
+  #chips { display: none; gap: 8px; padding: 0 18px 8px; overflow-x: auto; scrollbar-width: none; }
+  #chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0; padding: 8px 16px; border-radius: 18px; font-size: 13px; cursor: pointer;
+    background: #fff; color: var(--brand-deep); border: 1px solid #dfe5f5; font-weight: 600;
+    box-shadow: 0 2px 6px rgba(26,32,51,.04); transition: all .15s; white-space: nowrap;
+  }
+  .chip:hover { background: var(--brand-grad); color: #fff; border-color: transparent; transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -160,6 +196,13 @@
 <!-- 聊天屏 -->
 <div id="chatScreen">
   <div id="msgs"></div>
+  <div id="chips">
+    <div class="chip" onclick="quickAsk('我的快递到哪了')">📦 查物流</div>
+    <div class="chip" onclick="quickAsk('这个能退货吗')">↩️ 能退货吗</div>
+    <div class="chip" onclick="quickAsk('退款进度怎么样了')">💰 退款进度</div>
+    <div class="chip" onclick="quickAsk('退货政策是什么')">📋 退货政策</div>
+    <div class="chip" onclick="quickAsk('转人工')">👨‍💼 转人工</div>
+  </div>
   <div id="inputBar">
     <div class="box">
       <input id="chatInput" placeholder="输入您的问题，如：我的快递到哪了" onkeydown="if(event.key==='Enter')sendMsg()">
@@ -188,14 +231,57 @@ async function doVerify() {
     body: JSON.stringify({ phone_last4: phone, order_id: order }) }).then(r => r.json());
   if (!r.success) { err.textContent = r.error; return; }
   sessionId = r.session_id;
+  window.currentOrders = r.orders;
   const badge = document.getElementById('orderBadge');
   badge.style.display = 'block';
   badge.textContent = '✅ ' + r.orders.map(o => o.order_id).join(' · ');
   document.getElementById('verifyScreen').style.display = 'none';
   const cs = document.getElementById('chatScreen');
   cs.style.display = 'flex';
-  addMsg('bot', '您好，我是智能售后助手「小答」👋\n已验证您名下订单，可以直接问我：\n• 我的快递到哪了\n• 这个能退货吗 / 帮我退款\n• 退款到账了吗\n\n小额退款我可以直接为您办理，大额或复杂情况会转人工（无需重复描述问题）。');
+  document.getElementById('chips').style.display = 'flex';
+  addMsg('bot', '您好，我是智能售后助手「小答」👋\n已验证您名下订单，可以直接问我，或点下方快捷按钮：');
+  insertOrderCard();
   loadHistory();
+}
+
+// 订单卡片（嵌入对话流，每次对话后自动刷新状态）
+function insertOrderCard() {
+  document.querySelectorAll('.ordercard').forEach(e => e.remove());
+  (window.currentOrders || []).forEach(o => {
+    const card = document.createElement('div');
+    card.className = 'ordercard';
+    const st = o.order_status || '';
+    let step = 1, steps = ['已下单', '运输中', '已签收'], statusTxt = st;
+    if (st.includes('退款')) { steps = ['已下单', '已签收', '退款中']; step = 3; }
+    else if (st.includes('补发')) { steps = ['已下单', '已签收', '补发中']; step = 3; }
+    else if (st.includes('运输')) step = 2;
+    else if (st.includes('签收') || st.includes('送达')) step = 3;
+    else if (st.includes('待发货')) step = 1;
+    else step = 2;
+    card.innerHTML = `
+      <div class="oc-head">
+        <div class="oc-thumb">📦</div>
+        <div><div class="oc-title">${o.item}</div><div class="oc-sub">${o.order_id} · ¥${o.amount}</div></div>
+        <div class="oc-status">${statusTxt}</div>
+      </div>
+      <div class="oc-steps">${steps.map((s, i) =>
+        `<div class="oc-step ${i < step ? 'done' : ''}"><div class="dot"></div>${s}</div>`).join('')}
+      </div>`;
+    document.getElementById('msgs').appendChild(card);
+  });
+  scrollBottom();
+}
+
+async function refreshOrderCard() {
+  try {
+    const r = await fetch('/api/orders/' + sessionId).then(r => r.json());
+    if (r.orders) { window.currentOrders = r.orders; insertOrderCard(); }
+  } catch (e) {}
+}
+
+function quickAsk(text) {
+  document.getElementById('chatInput').value = text;
+  sendMsg();
 }
 
 async function loadHistory() {
@@ -266,6 +352,7 @@ async function sendMsg() {
           typing.remove();
           const d = evt.data;
           const div = addMsg('bot', d.reply);
+          refreshOrderCard();
           if (d.receipt && d.receipt.approved) {
             const rc = document.createElement('div');
             rc.className = 'receipt';

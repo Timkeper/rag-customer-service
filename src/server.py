@@ -73,7 +73,7 @@ async def startup():
     conn.close()
 
 
-BUILD_TAG = "20260912-b"  # 部署版本标记（排查线上跑的是哪版代码）
+BUILD_TAG = "20260912-c"  # 部署版本标记（排查线上跑的是哪版代码）
 
 
 @app.get("/api/health")
@@ -232,6 +232,20 @@ async def resolve_ticket(req: Request, x_token: str = Header(None)):
         return JSONResponse({"error": "未授权"}, status_code=401)
     data = await req.json()
     return ticket_service.resolve_ticket(data["ticket_id"])
+
+
+@app.get("/api/console/ticket-context/{ticket_id}")
+async def ticket_context(ticket_id: str, x_token: str = Header(None)):
+    """坐席台第三栏：工单关联的用户订单 + 最近 Agentic 动作（审计）"""
+    if not check_console(x_token):
+        return JSONResponse({"error": "未授权"}, status_code=401)
+    t = ticket_service.get_ticket(ticket_id)
+    if not t:
+        return JSONResponse({"error": "工单不存在"}, status_code=404)
+    user_id = t.get("user_id")
+    orders = session_store.get_user_orders(user_id) if user_id else []
+    audit = [a for a in policy_engine.list_audit(100) if a.get("user_id") == user_id][:5] if user_id else []
+    return {"user_id": user_id, "orders": orders, "audit": audit}
 
 
 # ============================================================
